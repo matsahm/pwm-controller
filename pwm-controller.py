@@ -17,8 +17,9 @@ max_var = config['DEFAULT']['MaxValue']
 steps_var = config['DEFAULT']['StepsValue']
 sleep_var = config['DEFAULT']['SleepValue']
 fontfamily_var = config['DESIGN']['FontFamily']
-fontsize_label_int = config['DESIGN']['FontSizeLabel']
-fontsize_button_int = config['DESIGN']['FontSizeButton']
+fontsize_label_int = int(config['DESIGN']['FontSizeLabel'])
+fontsize_button_int = int(config['DESIGN']['FontSizeButton'])
+circle_size = fontsize_label_int * 1.3
 
 # GPIO initialisieren
 GPIO.setwarnings(False)
@@ -58,12 +59,20 @@ def update_pwm():
             p.ChangeDutyCycle(dc)
             root.after(0, update_gui, (dc, None))
             time.sleep(sleep_time)
+            update_color(dc)
         for dc in range(max_value, min_value - 1, -steps_value):
             if pause_event.is_set():
                 break
             p.ChangeDutyCycle(dc)
             root.after(0, update_gui, (dc, None))
             time.sleep(sleep_time)
+            update_color(dc)
+
+def update_color(value):
+    # Berechne die Farbe zwischen Schwarz (0) und Rot (100)
+    red = int(255 * (value / 100))
+    color = f'#{red:02x}0000'
+    canvas.itemconfig(circle, fill=color)
 
 def start_pwm():
     global pwm_thread
@@ -85,6 +94,7 @@ def stop_pwm():
     pause_event.set()
     p.ChangeDutyCycle(0)
     value_text.config(text="0")
+    update_color(0)
     root.after(0, update_gui, (0, "PWM gestoppt"))
 
 def quit_program():
@@ -110,32 +120,35 @@ min_label = ttk.Label(root, text="Min:", font=label_font)
 min_label.grid(row=0, column=0, padx=10, pady=10)
 min_entry = ttk.Entry(root, font=label_font)
 min_entry.insert(0, min_var)
-min_entry.grid(row=0, column=1, padx=10, pady=10)
+min_entry.grid(row=0, column=1, padx=10, pady=10, columnspan=2)
 max_label = ttk.Label(root, text="Max:", font=label_font)
 max_label.grid(row=1, column=0, padx=10, pady=10)
 max_entry = ttk.Entry(root, font=label_font)
 max_entry.insert(0, max_var)
-max_entry.grid(row=1, column=1, padx=10, pady=10)
+max_entry.grid(row=1, column=1, padx=10, pady=10, columnspan=2)
 steps_label = ttk.Label(root, text="Schritte:", font=label_font)
 steps_label.grid(row=2, column=0, padx=10, pady=10)
 steps_entry = ttk.Entry(root, font=label_font)
 steps_entry.insert(0, steps_var)
-steps_entry.grid(row=2, column=1, padx=10, pady=10)
+steps_entry.grid(row=2, column=1, padx=10, pady=10, columnspan=2)
 speed_label = ttk.Label(root, text="Pause:", font=label_font)
 speed_label.grid(row=3, column=0, padx=10, pady=10)
 speed_entry = ttk.Entry(root, font=label_font)
 speed_entry.insert(0, sleep_var)
-speed_entry.grid(row=3, column=1, padx=10, pady=10)
+speed_entry.grid(row=3, column=1, padx=10, pady=10, columnspan=2)
 
 # Ausgabefelder
 status_label = ttk.Label(root, text="Status:", font=label_font)
 status_label.grid(row=4, column=0, padx=10, pady=10)
 status_text = ttk.Label(root, text="Bereit", font=label_font)
-status_text.grid(row=4, column=1, padx=10, pady=10)
+status_text.grid(row=4, column=1, padx=10, pady=10, columnspan=2)
 value_label = ttk.Label(root, text="Wert:", font=label_font)
 value_label.grid(row=5, column=0, padx=10, pady=10)
 value_text = ttk.Label(root, text="0", font=label_font)
 value_text.grid(row=5, column=1, padx=10, pady=10)
+canvas = tk.Canvas(root, width=circle_size, height=circle_size)
+canvas.grid(column=2, row=5)
+circle = canvas.create_oval(0, 0, circle_size, circle_size, fill='black')
 
 # Knöpfe
 start_button = ttk.Button(root, text="Start", command=start_pwm)
@@ -143,7 +156,7 @@ start_button.grid(row=6, column=0, padx=10, pady=10)
 pause_button = ttk.Button(root, text="Pause", command=pause_pwm)
 pause_button.grid(row=6, column=1, padx=10, pady=10)
 stop_button = ttk.Button(root, text="Stopp", command=stop_pwm)
-stop_button.grid(row=7, column=0, padx=10, pady=10)
+stop_button.grid(row=6, column=2, padx=10, pady=10)
 quit_button = ttk.Button(root, text="Beenden", command=quit_program)
 quit_button.grid(row=7, column=1, padx=10, pady=10)
 
