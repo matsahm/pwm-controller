@@ -1,15 +1,26 @@
 #!/usr/bin/env python3
 import tkinter as tk
 from tkinter import ttk
+import tkinter.font as tkFont
 import RPi.GPIO as GPIO
+import configparser
+
+# Config-Datei einlesen
+config = configparser.ConfigParser()
+config.read('config.ini')
+gpio_int = int(config['PWM']['GPIOPin'])
+frequency_int = int(config['PWM']['Frequency'])
+fontfamily_var = config['DESIGN']['FontFamily']
+fontsize_label_int = int(config['DESIGN']['FontSizeLabel'])
+circle_size = fontsize_label_int * 1.3
 
 # Konfiguriere den GPIO-Pin
-GPIO_PIN = 23
+GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(GPIO_PIN, GPIO.OUT)
+GPIO.setup(gpio_int, GPIO.OUT)
 
 # Initialisiere PWM
-pwm = GPIO.PWM(GPIO_PIN, 50)
+pwm = GPIO.PWM(gpio_int, frequency_int)
 pwm_value = 0
 
 def update_pwm(val):
@@ -40,13 +51,16 @@ def close_program():
 root = tk.Tk()
 root.title("PWM Slider")
 
+# Schriftgrößen definieren
+label_font = tkFont.Font(family=fontfamily_var, size=fontsize_label_int)
+
 mainframe = ttk.Frame(root, padding="6 6 24 24")
 mainframe.grid(column=0, row=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
 slider = ttk.Scale(mainframe, from_=0, to=100, orient=tk.HORIZONTAL, command=update_pwm, length=300)
 slider.grid(column=0, row=0, sticky=(tk.W, tk.E))
 
-label = ttk.Label(mainframe, text="Aktueller Wert: 0 %")
+label = ttk.Label(mainframe, text="Aktueller Wert: 0 %", font=label_font)
 label.grid(column=0, row=1, sticky=(tk.W, tk.E))
 
 start_button = ttk.Button(mainframe, text="Start", command=start_pwm)
@@ -58,9 +72,9 @@ stop_button.grid(column=0, row=2)
 close_button = ttk.Button(mainframe, text="Beenden", command=close_program)
 close_button.grid(column=0, row=2, sticky=tk.E)
 
-canvas = tk.Canvas(mainframe, width=20, height=20)
+canvas = tk.Canvas(mainframe, width=circle_size, height=circle_size)
 canvas.grid(column=0, row=1, sticky=tk.E)
-circle = canvas.create_oval(0, 0, 20, 20, fill='black')
+circle = canvas.create_oval(0, 0, circle_size, circle_size, fill='black')
 
 for child in mainframe.winfo_children(): 
     child.grid_configure(padx=10, pady=10)

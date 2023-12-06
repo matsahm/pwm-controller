@@ -18,7 +18,6 @@ steps_var = config['DEFAULT']['StepsValue']
 sleep_var = config['DEFAULT']['SleepValue']
 fontfamily_var = config['DESIGN']['FontFamily']
 fontsize_label_int = int(config['DESIGN']['FontSizeLabel'])
-fontsize_button_int = int(config['DESIGN']['FontSizeButton'])
 circle_size = fontsize_label_int * 1.3
 
 # GPIO initialisieren
@@ -113,7 +112,6 @@ root.title("PWM Controller")
 
 # Schriftgrößen definieren
 label_font = tkFont.Font(family=fontfamily_var, size=fontsize_label_int)
-button_font = tkFont.Font(family=fontfamily_var, size=fontsize_button_int)
 
 # Eingabefelder
 min_label = ttk.Label(root, text="Min:", font=label_font)
